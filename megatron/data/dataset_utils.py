@@ -536,9 +536,6 @@ def build_dataset(name, data_prefix, max_num_samples,
                   indexed_dataset=None):
 
     from megatron.data.bert_dataset import BertDataset
-    from megatron.data.ict_dataset import ICTDataset
-    from megatron.data.t5_dataset import T5Dataset
-    from megatron.data.multimodal_dataset import MultiModalDataset
 
     if dataset_type not in DSET_TYPES:
         raise ValueError("Invalid dataset_type: ", dataset_type)
