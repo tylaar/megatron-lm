@@ -10,7 +10,7 @@ import torch
 import torch.nn.functional as F
 from typing import Optional
 
-from megatron import get_timers, get_args, get_retro_args, core, get_num_microbatches
+from megatron import get_timers, get_args, core, get_num_microbatches
 from .module import MegatronModule
 from megatron.core import mpu, tensor_parallel
 from megatron.core.enums import ModelType
@@ -915,12 +915,6 @@ class ParallelTransformerLayer(MegatronModule):
         self.bias_dropout_add_exec_handler = \
                 nullcontext if use_nvfuser else torch.enable_grad
 
-        if args.retro_add_retriever:
-            retro_args = get_retro_args()
-            self.retro_num_neighbors = args.retro_num_neighbors
-            self.retro_chunk_length = retro_args.retro_gpt_chunk_length
-            self.retro_retrieved_length = retro_args.retro_gpt_retrieved_length
-
         # Retriever (bi-directional transformer with cross attention)
         if layer_type == LayerType.retro_decoder_with_retriever:
             self.retriever = ParallelTransformer(
@@ -1151,12 +1145,6 @@ class ParallelTransformerLayer(MegatronModule):
         # Update the params in case the retro param changes during inference
         # TODO: better redesign with inference param
         args = get_args()
-        if args.retro_add_retriever:
-            retro_args = get_retro_args()
-            self.retro_num_neighbors = args.retro_num_neighbors
-            self.retro_chunk_length = retro_args.retro_gpt_chunk_length
-            self.retro_retrieved_length = retro_args.retro_gpt_retrieved_length
-
         # hidden_states: [s, b, h]
 
         # Layer norm at the beginning of the transformer layer.

@@ -27,11 +27,6 @@ def get_args():
     return _GLOBAL_ARGS
 
 
-def get_retro_args():
-    """Return retro arguments."""
-    return _GLOBAL_RETRO_ARGS
-
-
 def get_num_microbatches():
     return _GLOBAL_NUM_MICROBATCHES_CALCULATOR.get()
 

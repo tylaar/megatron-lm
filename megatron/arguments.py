@@ -10,10 +10,7 @@ import torch
 import types
 
 import torch.nn.functional as F
-from megatron.global_vars import set_retro_args, get_retro_args
-from tools.retro.utils import get_args_path as get_retro_args_path
 
-from megatron.core.models.retro import RetroConfig
 from megatron.core.transformer import TransformerConfig
 
 
@@ -367,18 +364,6 @@ def validate_args(args, defaults={}):
         assert args.pipeline_model_parallel_size == 1, \
             "retro currently does not support pipeline parallelism."
 
-    # Load retro args (used by both Retro & GPT).
-    if args.retro_workdir:
-        retro_args_path = get_retro_args_path(args.retro_workdir)
-        assert os.path.exists(retro_args_path), "retro workdir missing args.json"
-        with open(retro_args_path) as f:
-            retro_args = types.SimpleNamespace(**json.load(f))
-            retro_args.retro_return_doc_ids = args.retro_return_doc_ids
-            retro_args.retro_gpt_retrieved_length = \
-                args.retro_num_retrieved_chunks * \
-                retro_args.retro_gpt_chunk_length
-            set_retro_args(retro_args)
-
     # Legacy RoPE arguments
     if args.use_rotary_position_embeddings:
         args.position_embedding_type = 'rope'
@@ -407,10 +392,6 @@ def validate_args(args, defaults={}):
 
     # Print arguments.
     _print_args("arguments", args)
-    retro_args = get_retro_args()
-    if retro_args and args != retro_args:
-        _print_args("retro arguments", types.SimpleNamespace(**{k:v for k,v in vars(retro_args).items() if k.startswith("retro")}, rank=args.rank))
-
     return args
 
 
@@ -462,12 +443,6 @@ def core_transformer_config_from_args(args):
         kw_args['num_query_groups'] = args.num_query_groups
     else:
         kw_args['num_query_groups'] = None
-
-    # If using Retro, return Retro config.
-    retro_args = get_retro_args()
-    if retro_args:
-        kw_args['retro_preprocess'] = retro_args
-        return RetroConfig(**kw_args)
 
     # Return Transformer config.
     return TransformerConfig(**kw_args)

@@ -290,7 +290,7 @@ def get_model(model_provider_func, model_type=ModelType.encoder_or_decoder, wrap
         else:
             # TODO by yifeng: the true place where model_provider is actually called. This line is most likely to be
             # TODO by yifeng: executed on single host.
-            trainer_logger.log("[YIFENG] building singleton model starting here.")
+            trainer_logger.info("[YIFENG] building singleton model starting here.")
             model = model_provider_func(
                 pre_process=pre_process,
                 post_process=post_process

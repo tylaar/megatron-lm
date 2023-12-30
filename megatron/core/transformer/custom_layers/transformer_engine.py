@@ -68,6 +68,7 @@ class TENorm:
         return instance
 
 
+# TODO by yifeng: This is the Transformer engine FP8 implementation core
 class TELinear(te.pytorch.Linear):
     """
     Wrapper for the Transformer-Engine's `Linear` layer.
@@ -143,6 +144,7 @@ class TELinear(te.pytorch.Linear):
         return out, None
 
 
+# TODO by yifeng: This is the Transformer engine FP8 implementation core
 class TELayerNormColumnParallelLinear(te.pytorch.LayerNormLinear):
     """
     Wrapper for the Transformer-Engine's `LayerNormLinear` layer that combines
