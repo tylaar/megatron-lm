@@ -1,6 +1,7 @@
 # Copyright (c) 2023, NVIDIA CORPORATION. All rights reserved.
 
 """Transformer."""
+import logging
 from contextlib import nullcontext
 import os
 import math
@@ -25,6 +26,8 @@ from megatron.core.tensor_parallel import (
     get_data_parallel_rng_tracker_name
 )
 from megatron.core.parallel_state import get_tensor_model_parallel_group, get_tensor_and_expert_parallel_group
+
+logger = logging.getLogger(__name__)
 
 try:
     from einops import rearrange
@@ -533,6 +536,7 @@ class ParallelAttention(MegatronModule):
                 raise ImportError('einops is not installed, please install with pip install einops')
 
         # Per attention head and per partition values.
+        # TODO by yifeng: key implementation part of attention head.
         world_size = mpu.get_tensor_model_parallel_world_size()
         self.hidden_size_per_attention_head = core.utils.divide(
             query_projection_size, config.num_attention_heads)
@@ -549,6 +553,7 @@ class ParallelAttention(MegatronModule):
             self.num_query_groups_per_partition = self.num_attention_heads_per_partition
 
         # Strided linear layer.
+        # TODO by yifeng: key implementation part of qkv.
         if attention_type == AttnType.self_attn:
             self.query_key_value = tensor_parallel.ColumnParallelLinear(
                 config.hidden_size,
@@ -1385,6 +1390,8 @@ class ParallelTransformer(MegatronModule):
                  post_process=True,
                  drop_path_rate=0.0):
         super(ParallelTransformer, self).__init__()
+        logger.info("[YIFENG] building ParallelTransformer model")
+
         args = get_args()
 
         self.layer_type = layer_type

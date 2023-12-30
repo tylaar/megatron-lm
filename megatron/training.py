@@ -49,6 +49,7 @@ from megatron.core.pipeline_parallel import get_forward_backward_func
 from megatron.utils import report_memory
 from megatron.model.vision.knn_monitor import compute_feature_bank
 
+trainer_logger = logging.getLogger(__name__)
 
 def print_datetime(string):
     """Note that this call will sync across all ranks."""
@@ -137,6 +138,8 @@ def pretrain(train_valid_test_dataset_provider,
 
     # Model, optimizer, and learning rate.
     timers('model-and-optimizer-setup', log_level=0).start(barrier=True)
+    # TODO by yifeng, the arguments are all loaded in model_provider which is defined right before pretrain function
+    # TODO by yifeng, and passed into here.
     model, optimizer, opt_param_scheduler = setup_model_and_optimizer(
         model_provider, model_type)
     timers('model-and-optimizer-setup').stop()
@@ -254,6 +257,7 @@ def get_model(model_provider_func, model_type=ModelType.encoder_or_decoder, wrap
             # Set pre_process and post_process only after virtual rank is set.
             pre_process = mpu.is_pipeline_first_stage()
             post_process = mpu.is_pipeline_last_stage()
+            # TODO by yifeng: the true place where model_provider is actually called.
             this_model = model_provider_func(
                 pre_process=pre_process,
                 post_process=post_process
@@ -277,12 +281,16 @@ def get_model(model_provider_func, model_type=ModelType.encoder_or_decoder, wrap
                         rank == (world_size - 1))
                 add_encoder = mpu.is_pipeline_stage_before_split()
                 add_decoder = mpu.is_pipeline_stage_after_split()
+            # TODO by yifeng: the true place where model_provider is actually called.
             model = model_provider_func(
                 pre_process=pre_process,
                 post_process=post_process,
                 add_encoder=add_encoder,
                 add_decoder=add_decoder)
         else:
+            # TODO by yifeng: the true place where model_provider is actually called. This line is most likely to be
+            # TODO by yifeng: executed on single host.
+            trainer_logger.log("[YIFENG] building singleton model starting here.")
             model = model_provider_func(
                 pre_process=pre_process,
                 post_process=post_process
@@ -294,6 +302,7 @@ def get_model(model_provider_func, model_type=ModelType.encoder_or_decoder, wrap
 
     # Disallow training and inference with Transformer Engine
     # for non-GPT models
+    # TODO by yifeng: GPT style model is only one currently allowed in trainer for accessing TransformerEngine
     args.allow_transformer_engine = all([type(m) == GPTModel for m in model])
     # assert args.allow_transformer_engine or args.transformer_impl == 'local', \
     #     'Transformer Engine is only approved for GPT models'
@@ -320,6 +329,7 @@ def get_model(model_provider_func, model_type=ModelType.encoder_or_decoder, wrap
         model_module.cuda(torch.cuda.current_device())
 
     # Fp16 conversion.
+    # TODO by yifeng, there is something in Float16Module which has attribute called
     if args.fp16 or args.bf16:
         model = [Float16Module(model_module, args) for model_module in model]
 
@@ -773,6 +783,7 @@ def train(forward_step_func, model, optimizer, opt_param_scheduler,
         gc.disable()
         gc.collect()
 
+    # TODO by yifeng: here comes the real training iteration
     while iteration < args.train_iters:
         if args.profile and \
            iteration == args.profile_step_start and \

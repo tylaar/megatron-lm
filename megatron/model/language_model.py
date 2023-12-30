@@ -1,6 +1,7 @@
 # Copyright (c) 2023, NVIDIA CORPORATION. All rights reserved.
 
 """Transformer based language model."""
+import logging
 
 import torch
 import torch.nn.functional as F
@@ -16,6 +17,7 @@ from .transformer import ParallelTransformer
 from .utils import get_linear_layer
 from .utils import init_method_normal, scaled_init_method_normal
 
+logger = logging.getLogger(__name__)
 
 def parallel_lm_logits(input_, word_embeddings_weight, parallel_output,
                        bias=None):
@@ -339,7 +341,7 @@ class TransformerLanguageModel(MegatronModule):
         # TODO: passing share_embeddings_and_output_weights=False will not work correctly for T5 and embeddings will not be synced. Fix later for T5.
         if args.untie_embeddings_and_output_weights: assert not add_decoder
         super(TransformerLanguageModel, self).__init__(share_embeddings_and_output_weights=not args.untie_embeddings_and_output_weights)
-
+        logger.info("[YIFENG] building transformer model")
         self.pre_process = pre_process
         self.post_process = post_process
         self.hidden_size = config.hidden_size

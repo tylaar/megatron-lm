@@ -1,8 +1,9 @@
 # Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
 """Pretrain GPT."""
-
+import logging
 import os
 import torch
+import wandb
 from torch import Tensor
 from functools import partial
 from typing import Union
@@ -30,6 +31,8 @@ from megatron.core.models.gpt.gpt_layer_specs import (
     gpt_layer_with_transformer_engine_spec_moe
 )
 
+logger = logging.getLogger(__name__)
+
 def model_provider(pre_process=True, post_process=True) -> Union[GPTModel, megatron.model.GPTModel]:
     """Builds the model.
 
@@ -47,6 +50,8 @@ def model_provider(pre_process=True, post_process=True) -> Union[GPTModel, megat
 
     print_rank_0('building GPT model ...')
     config = core_transformer_config_from_args(get_args())
+
+    wandb.init(project="codeparrot", sync_tensorboard=True)
 
     if args.use_mcore_models:
         if args.spec is not None:
@@ -231,3 +236,4 @@ if __name__ == "__main__":
              ModelType.encoder_or_decoder,
              forward_step,
              args_defaults={'tokenizer_type': 'GPT2BPETokenizer'})
+    wandb.finish()

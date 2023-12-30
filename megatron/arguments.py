@@ -104,9 +104,11 @@ def validate_args(args, defaults={}):
 
 
     # Deprecated arguments
+    # TODO By yifeng, the batch_size is replaced by global_batch_size and micro_batch_size
     assert args.batch_size is None, '--batch-size argument is no longer ' \
         'valid, use --micro-batch-size instead'
     del args.batch_size
+    # TODO by yifeng, this is replaced by warmup-fraction
     assert args.warmup is None, '--warmup argument is no longer valid, use ' \
         '--lr-warmup-fraction instead'
     del args.warmup
@@ -1120,8 +1122,7 @@ def _add_distributed_args(parser):
                        default=False, help='If set, use custom-built ring exchange '
                        'for p2p communications. Note that this option will require '
                        'a custom built image that support ring-exchange p2p.')
-    group.add_argument('--local_rank', type=int, default=None,
-                       help='local rank passed from distributed launcher.')
+    group.add_argument('--local_rank', type=int, default=None,help='local rank passed from distributed launcher.')
     group.add_argument('--lazy-mpu-init', type=bool, required=False,
                        help='If set to True, initialize_megatron() '
                        'skips DDP initialization and returns function to '
