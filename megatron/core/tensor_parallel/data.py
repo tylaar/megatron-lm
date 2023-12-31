@@ -64,6 +64,8 @@ def _build_key_size_numel_dictionaries(keys, data):
     return key_size, key_numel, total_numel
 
 
+# TODO by yifeng: during tensor parallel the torch distributing data functionality is done by
+# TODO by yifeng: this function. Notice it's broadcasting to THE SAME MODEL PARALLEL GROUP.
 def broadcast_data(keys, data, datatype):
     """Broadcast data from rank zero of each model parallel group to the
     members of the same model parallel group.
