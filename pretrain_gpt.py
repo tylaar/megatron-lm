@@ -51,8 +51,6 @@ def model_provider(pre_process=True, post_process=True) -> Union[GPTModel, megat
     print_rank_0('building GPT model ...')
     config = core_transformer_config_from_args(get_args())
 
-    wandb.init(project="codeparrot", sync_tensorboard=True)
-
     if args.use_mcore_models:
         if args.spec is not None:
             transformer_layer_spec = import_module(args.spec)
@@ -236,4 +234,3 @@ if __name__ == "__main__":
              ModelType.encoder_or_decoder,
              forward_step,
              args_defaults={'tokenizer_type': 'GPT2BPETokenizer'})
-    wandb.finish()
